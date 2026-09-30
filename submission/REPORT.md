@@ -9,7 +9,7 @@
 - **Lớp:** K4-L3B
 - **Repository URL:** https://github.com/meth04/K4-L3-DAY13-NguyenVanThan-02859-Monitoring-LLMOps
 - **Commit SHA cuối:** `d9d921f` (commit nội dung đầy đủ — gồm code, evidence 01–14 và báo cáo này; xem `git log -1 --format=%H`)
-- **Challenge ID:** _(chờ Lab Coach release `config/challenge.json` tại CP3)_
+- **Challenge ID:** `day13-k4-l3b-monitoring-llmops-v1` (cohort K4, incident `rag_slow`, seed `1312`, affected_feature `monitoring`, SLO `latency_threshold_ms = 2000`)
 - **Tên project Langfuse cá nhân:** `day13-k4-l3b-2A202602859`
 
 ## 2. Evidence index
@@ -83,14 +83,15 @@
 
 ## 7. Điều tra challenge
 
-- **Challenge ID:** _(chờ Lab Coach release `config/challenge.json`)_
-- **Khoảng thời gian điều tra:** đã luyện quy trình với practice scenario `rag_slow` (2026-09-30T02:27 UTC); sẽ lặp lại đúng quy trình với challenge chính thức.
-- **Triệu chứng từ metrics:** `/metrics` cho thấy `latency_p95` tăng từ 151 ms lên 2653 ms (đỉnh đo từ load test ~8000 ms), trong khi `ttft_p95` gần như không đổi (50 ms) và `error_breakdown` rỗng. TTFT không đổi ⇒ thời gian bị tiêu tốn **trước** khi LLM sinh token, tức ở bước retrieval.
-- **Log line và correlation ID liên quan:** `evidence/13-incident-log.txt` — các bản ghi `response_sent` có `latency_ms` ~2650 ms, ví dụ `correlation_id=req-b44b1d94` (`latency_ms=2689`, `ttft_ms=87`, `tool_name=retrieval`, `tool_success=true`).
-- **Trace ID và span gây ảnh hưởng:** trace `4e547c4593a4cbc1f64866fcf80f19d8` (correlation_id `req-9a1b2c3d`, project `day13-k4-l3b-2A202602859`) — waterfall `lab-agent-run` 6.46 s, trong đó span **`retrieval` = 2.50 s** còn span `generation` chỉ **0.15 s**. Đối chiếu `latency_ms` lớn nhưng `ttft_ms` nhỏ xác nhận nút thắt nằm ở bước retrieval, không phải LLM sinh token. Ảnh: `evidence/14-incident-trace.png`.
-- **Root cause:** scenario `rag_slow` chèn `time.sleep(2.5)` trong `app/mock_rag.py::retrieve`, làm span retrieval chậm ~2.5 s mỗi request; không phải lỗi LLM hay lỗi prompt.
-- **Fix action:** tắt scenario bằng `python scripts/inject_incident.py --scenario rag_slow --disable`; latency trở về mức baseline.
-- **Preventive measure:** alert `HighLatencyP95` (5m) và `RetrievalSuccessDrop` (5m) bắt sớm; runbook `docs/alerts.md#alert-1` hướng dẫn kiểm tra dashboard → log theo `correlation_id` → trace để khoanh vùng span retrieval trước khi rollback/tắt scenario.
+- **Challenge ID:** `day13-k4-l3b-monitoring-llmops-v1` (cohort K4, incident `rag_slow`, seed `1312`, affected_feature `monitoring`, SLO `latency_threshold_ms = 2000`).
+- **Cách chạy:** `python scripts/inject_incident.py` (không kèm `--scenario`, đọc `config/challenge.json`) để bật đúng incident của challenge, rồi `python scripts/load_test.py --challenge --concurrency 5` để bắn đúng 5 query challenge.
+- **Khoảng thời gian điều tra:** incident window `2026-09-30T04:04:29Z`–`2026-09-30T04:04:43Z` (UTC); chạy và thu evidence ngày `2026-09-30T04:05Z`. Chi tiết trong `evidence/12-incident-metric.txt`.
+- **Triệu chứng từ metrics:** `/health` báo `incidents.rag_slow=true`; `/metrics` in-incident cho `latency_p95 = 2654 ms` (vượt SLO 2000 ms) trong khi `latency_p50 = 154 ms`, `ttft_p95 = 51 ms` **không đổi**, `error_breakdown = {}` rỗng. 5 request challenge có latency 7992–13312 ms. P95 vọt lên 154 → 2654 ms nhưng TTFT và error rate đứng yên ⇒ thời gian bị tiêu tốn **trước** khi LLM sinh token, tức ở bước retrieval.
+- **Log line và correlation ID liên quan:** `evidence/13-incident-log.txt` — 5 dòng `response_sent` (feature `monitoring`) đều có `latency_ms` 2653–2654, `ttft_ms` 50, `tool_name=retrieval`, `tool_success=true`. Chọn correlation ID `req-9bc618e6` (session `k4-l3b-challenge-s02`, query "How should an engineer investigate tail latency?") làm mốc nối sang trace.
+- **Trace ID và span gây ảnh hưởng:** trace `f71427c0ce80a45dd1d5cc9271d23ddb` (project cá nhân `day13-k4-l3b-2A202602859`, session `k4-l3b-challenge-s02`, correlation_id `req-9bc618e6`) — waterfall `lab-agent-run` **2.654 s**, trong đó span **`retrieval` = 2.501 s** còn span `generation` chỉ **0.152 s**. `latency_ms` lớn nhưng `ttft_ms` nhỏ xác nhận nút thắt ở retrieval, không phải LLM sinh token. Ảnh: `evidence/14-incident-trace.png`.
+- **Root cause:** incident `rag_slow` chèn `time.sleep(2.5)` trong `app/mock_rag.py::retrieve`, làm span retrieval chậm ~2.5 s mỗi request; không phải lỗi LLM, prompt hay hạ tầng.
+- **Fix action:** tắt incident bằng `python scripts/inject_incident.py --disable`; `/health` trở lại `incidents.rag_slow=false` và latency về mức baseline (P95 ~153 ms).
+- **Preventive measure:** alert `HighLatencyP95` (5m) và `RetrievalSuccessDrop` (5m) bắt sớm; runbook `docs/alerts.md#alert-1` hướng dẫn dashboard → log theo `correlation_id` → trace để khoanh vùng span retrieval trước khi tắt scenario/rollback. Bổ sung SLO `latency_threshold_ms = 2000` (chặt hơn SLO nội bộ 3000 ms) để phát hiện sớm suy giảm ở bước retrieval.
 
 ## 8. Giải thích và tự đánh giá
 
@@ -100,7 +101,7 @@
 - **Cách hiểu luồng Metrics → Logs → Traces:** metrics trả lời "có gì bất thường và khi nào" (nhanh, rẻ, tổng hợp); khi metric chỉ ra khoảng thời gian, log cho biết "request nào" qua `correlation_id`; trace cùng `correlation_id` cho biết "bước nào" gây ra vấn đề. Ba tầng giảm dần độ rộng và tăng dần chi tiết, dẫn tới root cause.
 - **Vai trò của prompt version, token/cost, SLO hoặc rollback trong vận hành LLM:** prompt là một phần "code" của LLM nên cần version + label để promote/rollback có kiểm soát; token/cost là chỉ số chi phí gắn trực tiếp với chất lượng output (prompt dài/candidate sinh nhiều token ⇒ tốn hơn); SLO/error budget biến "chất lượng dịch vụ" thành ngưỡng định lượng để quyết định khi nào dừng release; rollback là hành động giảm thiểu nhanh nhất khi metric xấu sau khi đổi prompt.
 - **Điều quan trọng nhất đã học:** quan sát (observability) là năng lực thiết kế từ đầu — correlation ID, scrub-before-write, span tree và ngưỡng SLO phải được cài trong code, không thể "gắn thêm" sau khi sự cố xảy ra.
-- **Hạn chế hoặc phần chưa hoàn thành, nếu có:** (1) CP3 challenge chính thức chưa chạy vì `config/challenge.json` chưa được Lab Coach release — quy trình đã được luyện và chứng minh bằng practice scenario `rag_slow` (metric → log → trace → root cause); (2) dashboard runtime dựng bằng script chuẩn-thư-viện từ `data/logs.jsonl` thay vì Grafana vì lab không cấp hạ tầng dashboard ngoài.
+- **Hạn chế hoặc phần chưa hoàn thành, nếu có:** (1) challenge CP3 chính thức đã chạy xong (`day13-k4-l3b-monitoring-llmops-v1`, incident `rag_slow`) và được chứng minh đầy đủ bằng chuỗi metric → log → trace → root cause trong mục §7; (2) dashboard runtime dựng bằng script chuẩn-thư-viện từ `data/logs.jsonl` thay vì Grafana vì lab không cấp hạ tầng dashboard ngoài.
 
 ## 9. Checklist trước khi nộp
 

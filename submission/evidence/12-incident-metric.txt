@@ -1,14 +1,27 @@
-=== 12: Incident metric — practice scenario rag_slow ===
+=== 12: Incident metric - challenge chinh thuc K4-L3B ===
 
-Bật scenario:  python scripts/inject_incident.py --scenario rag_slow
-Chạy tải:      python scripts/load_test.py --concurrency 3
+Challenge ID: day13-k4-l3b-monitoring-llmops-v1
+Cohort: K4 | incident: rag_slow | seed: 1312 | affected_feature: monitoring
+latency_threshold_ms (SLO): 2000
 
---- /health (scenario đang bật) ---
-{"ok":true,"tracing_enabled":false,"incidents":{"rag_slow":true,"tool_fail":false,"cost_spike":false}}
---- /metrics ---
-{"traffic":41,"latency_p50":151.0,"latency_p95":2653.0,"latency_p99":2689.0,"ttft_p95":50.0,"avg_cost_usd":0.0022,"total_cost_usd":0.0904,"tokens_in_total":1398,"tokens_out_total":5746,"error_breakdown":{},"quality_avg":0.878}
+Lenh chay:
+  python scripts/inject_incident.py            # doc config/challenge.json -> rag_slow
+  python scripts/load_test.py --challenge --concurrency 5
 
-So sánh: TRƯỚC incident latency ~470ms; TRONG incident latency ~8000ms (đo từ load_test).
-Metric bất thường: latency_p95 tăng vọt 151ms -> 2653ms (và đỉnh 8000ms), TTFT gần như không đổi => nghẽn ở bước retrieval chứ không phải generation.
+--- /health (scenario dang bat) ---
+{"ok":true,"tracing_enabled":true,"incidents":{"rag_slow":true,"tool_fail":false,"cost_spike":false}}
 
-Ngày chạy: 2026-09-30T02:28:34Z
+--- /metrics TRONG incident (traffic=15) ---
+{"traffic":15,"latency_p50":154.0,"latency_p95":2654.0,"latency_p99":2654.0,"ttft_p95":51.0,"avg_cost_usd":0.0022,"total_cost_usd":0.0327,"tokens_in_total":670,"tokens_out_total":2044,"error_breakdown":{},"quality_avg":0.8667}
+
+--- /metrics SAU fix (tat scenario, traffic=25) ---
+{"traffic":25,"latency_p50":153.0,"latency_p95":2653.0,"latency_p99":2654.0,"ttft_p95":50.0,"avg_cost_usd":0.0022,"total_cost_usd":0.0548,"tokens_in_total":1113,"tokens_out_total":3428,"error_breakdown":{},"quality_avg":0.872}
+
+Trieu chung: 5 request challenge (feature=monitoring) co latency do tu load_test 7992-13312 ms;
+  latency_p95 tang tu ~154 ms (baseline) len 2654 ms; ttft_p95 gan nhu khong doi (51 ms);
+  error_breakdown rong.
+Ket luan buoc 1: latency cao nhung TTFT khong doi => thoi gian bi tieu ton TRUOC khi LLM
+  sinh token, tuc o buoc retrieval (khong phai generation).
+
+Khoang thoi gian incident: 2026-09-30T04:04:29Z - 2026-09-30T04:04:43Z (UTC)
+Ngay chay: 2026-09-30T04:05Z
