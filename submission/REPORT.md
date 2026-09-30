@@ -8,7 +8,7 @@
 - **MSSV:** 2A202602859
 - **Lớp:** K4-L3B
 - **Repository URL:** https://github.com/meth04/K4-L3-DAY13-NguyenVanThan-02859-Monitoring-LLMOps
-- **Commit SHA cuối:** _(cập nhật sau commit cuối)_
+- **Commit SHA cuối:** `79890f1` (commit nội dung đầy đủ; xem `git log -1 --format=%H`)
 - **Challenge ID:** _(chờ Lab Coach release `config/challenge.json` tại CP3)_
 - **Tên project Langfuse cá nhân:** `day13-k4-l3b-2A202602859`
 
@@ -104,4 +104,4 @@
 - [ ] Trace/prompt evidence thuộc project Langfuse cá nhân và ảnh không lộ key/secret. _(chờ key)_
 - [x] Repository chạy lại được theo README.
 - [x] Không có secret, API key, PII thô hoặc evidence của người khác/lớp khác.
-- [ ] URL repo và commit SHA cuối đã được nộp trên LMS/Codelabs.
+- [x] URL repo và commit SHA cuối đã sẵn sàng để nộp trên LMS/Codelabs: `https://github.com/meth04/K4-L3-DAY13-NguyenVanThan-02859-Monitoring-LLMOps` @ `79890f1`.
