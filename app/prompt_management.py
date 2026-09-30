@@ -7,6 +7,13 @@ from typing import Any
 
 DEFAULT_PROMPT_TEMPLATE = "Feature={{feature}}\nDocs={{docs}}\nQuestion={{message}}"
 
+# Prompt gọn dùng cho tối ưu chi phí (bật bằng PROMPT_COMPACT=1). Bỏ dòng
+# "Feature=" vì feature đã có trong metadata/log, và giới hạn còn 1 doc +
+# cắt ngắn câu hỏi để giảm token đầu vào trên cùng workload.
+COMPACT_PROMPT_TEMPLATE = "Docs={{docs}}\nQ={{message}}"
+COMPACT_MAX_DOCS = 1
+COMPACT_MAX_MESSAGE_CHARS = 120
+
 
 @dataclass(frozen=True)
 class ResolvedPrompt:
@@ -20,6 +27,13 @@ class ResolvedPrompt:
 
 
 def _compile_local_prompt(*, feature: str, docs: list[str], message: str) -> str:
+    if os.getenv("PROMPT_COMPACT") == "1":
+        compact_docs = docs[:COMPACT_MAX_DOCS]
+        compact_message = message[:COMPACT_MAX_MESSAGE_CHARS]
+        return (
+            COMPACT_PROMPT_TEMPLATE.replace("{{docs}}", "\n".join(compact_docs))
+            .replace("{{message}}", compact_message)
+        )
     return (
         DEFAULT_PROMPT_TEMPLATE.replace("{{feature}}", feature)
         .replace("{{docs}}", "\n".join(docs))

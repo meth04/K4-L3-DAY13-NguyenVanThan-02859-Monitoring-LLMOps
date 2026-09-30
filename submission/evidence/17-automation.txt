@@ -1,0 +1,26 @@
+=== Automation: secret/PII scan + CI ===
+
+--- scripts/scan_secrets.py (quét file Git theo dõi) ---
+Đã quét 74 file.
+
+SẠCH: không phát hiện secret/PII thô hoặc file bị cấm.
+
+--- scripts/scan_secrets.py --all (quét cả cây, gồm file chưa track) ---
+Đã quét 90 file.
+
+SẠCH: không phát hiện secret/PII thô hoặc file bị cấm.
+
+--- CI: .github/workflows/ci.yml chạy các bước ---
+1:name: CI
+18:      - name: Install dependencies
+23:      - name: Scan for secrets and raw PII
+26:      - name: Run test suite
+29:      - name: Start API and generate runtime logs
+37:      - name: Validate structured logs (technical gate)
+40:      - name: Validate dashboard contract (technical gate)
+43:      - name: Build runtime dashboard artifact
+46:      - name: Upload dashboard artifact
+49:          name: dashboard
+
+--- Dashboard generation (đã có sẵn): scripts/build_dashboard.py ---
+python scripts/build_dashboard.py --out submission/evidence/dashboard.html

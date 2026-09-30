@@ -145,6 +145,18 @@ python -m pytest -q
 
 Baseline log chưa đạt là bình thường vì các `TODO` của CP1 chưa được làm. Ghi lại kết quả baseline vào `submission/REPORT.md` trước khi sửa.
 
+## Công cụ bổ sung (bonus)
+
+```bash
+python scripts/scan_secrets.py          # quét secret/PII trước khi commit
+python scripts/compare_cost.py          # đo cost before/after tối ưu prompt
+python scripts/audit_demo.py            # demo audit log control-plane
+python -m app.audit --prune             # dọn audit log hết hạn (retention)
+```
+
+CI tại `.github/workflows/ci.yml` chạy scan → test → validators → build dashboard.
+Schema/retention/truy vấn audit log: `docs/AUDIT.md`.
+
 ## Lộ trình 9:00–13:00 (240 phút)
 
 | Mốc | Thời gian | Việc chính | Hoàn thành khi |

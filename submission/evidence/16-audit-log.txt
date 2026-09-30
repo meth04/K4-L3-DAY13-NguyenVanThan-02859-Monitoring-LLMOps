@@ -1,0 +1,18 @@
+=== Audit log runtime (control-plane actions) ===
+POST /incidents/rag_slow/enable  -> 200
+POST /incidents/rag_slow/disable -> 200
+
+So ban ghi audit: 2
+
+--- data/audit.jsonl (2 dong dau) ---
+{"schema_version": 1, "audit_id": "aud-1c6a6f36301c", "ts": "2026-09-30T04:38:44.969810Z", "action": "incident.enable", "actor": "operator", "target": "rag_slow", "outcome": "success", "correlation_id": "req-84d0372b", "retention_days": 90, "details": {"incidents": {"rag_slow": true, "tool_fail": false, "cost_spike": false}}}
+{"schema_version": 1, "audit_id": "aud-d1f5ca2c399a", "ts": "2026-09-30T04:38:44.975643Z", "action": "incident.disable", "actor": "operator", "target": "rag_slow", "outcome": "success", "correlation_id": "req-f4db925f", "retention_days": 90, "details": {"incidents": {"rag_slow": false, "tool_fail": false, "cost_spike": false}}}
+
+--- Truy van minh hoa: loc hanh dong + doi tuong ---
+  2026-09-30T04:38:44.969810Z  actor=operator  action=incident.enable  target=rag_slow  outcome=success  correlation_id=req-84d0372b
+  2026-09-30T04:38:44.975643Z  actor=operator  action=incident.disable  target=rag_slow  outcome=success  correlation_id=req-f4db925f
+
+--- Retention: prune (retention_days=90) ---
+Giu lai 2 ban ghi, da xoa 0 ban ghi het han.
+
+Nhan xet: audit log ghi doc lap voi log nghiep vu, co schema_version, actor/action/target/outcome va correlation_id de noi tiep log/trace.

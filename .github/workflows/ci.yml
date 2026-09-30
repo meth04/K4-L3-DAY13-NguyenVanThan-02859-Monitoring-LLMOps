@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Scan for secrets and raw PII
+        run: python scripts/scan_secrets.py
+
+      - name: Run test suite
+        run: python -m pytest -q
+
+      - name: Start API and generate runtime logs
+        run: |
+          uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8000/health && break || sleep 1
+          done
+          python scripts/load_test.py
+
+      - name: Validate structured logs (technical gate)
+        run: python scripts/validate_logs.py
+
+      - name: Validate dashboard contract (technical gate)
+        run: python scripts/validate_dashboard.py
+
+      - name: Build runtime dashboard artifact
+        run: python scripts/build_dashboard.py --out submission/evidence/dashboard.html
+
+      - name: Upload dashboard artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: submission/evidence/dashboard.html

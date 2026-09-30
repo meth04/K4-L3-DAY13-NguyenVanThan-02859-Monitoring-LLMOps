@@ -1,0 +1,16 @@
+=== Cost optimization before/after (cung workload) ===
+Workload: 10 query tu data/sample_queries.jsonl, seed=42
+
+Metric                        before         after         delta
+traffic                           10            10             0
+tokens_in_total                  338           291           -47
+tokens_out_total                1210          1210             0
+total_cost_usd                0.0192         0.019       -0.0002
+avg_cost_usd                  0.0019        0.0019           0.0
+quality_avg                     0.88          0.88           0.0
+
+Tiet kiem token dau vao: 338 -> 291 tok (13.9%)
+Tiet kiem chi phi     : $0.019200 -> $0.019000 (tiet kiem $0.000200, 1.0%)
+Chat luong trung binh : 0.88 -> 0.88
+
+Ket luan: cung workload, prompt gon giam token dau vao va chi phi ma khong giam chat luong trung binh.

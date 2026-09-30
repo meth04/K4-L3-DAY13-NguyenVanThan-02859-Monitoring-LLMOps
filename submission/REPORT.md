@@ -32,6 +32,9 @@
 | Incident metric | `evidence/12-incident-metric.txt` |
 | Incident log | `evidence/13-incident-log.txt` |
 | Incident trace | `evidence/14-incident-trace.png` |
+| Cost optimization (bonus) | `evidence/15-cost-optimization.txt` |
+| Audit log (bonus) | `evidence/16-audit-log.txt` |
+| Automation scan/CI (bonus) | `evidence/17-automation.txt` |
 
 ## 3. Kết quả kỹ thuật
 
@@ -39,7 +42,7 @@
 |---|---|---|---|
 | `validate_logs.py` | 30/100 | **100/100** | Đủ 4 hạng mục: JSON schema, correlation ID, enrichment, PII |
 | `validate_dashboard.py` | 6/6 | **6/6** | Giữ nguyên 6 panel đúng contract |
-| `pytest` | 22 passed | **22 passed** | Không hồi quy sau khi thêm tracing/PII |
+| `pytest` | 22 passed | **30 passed** | 22 test gốc + 8 test mới (audit log, secret/PII scanner) |
 | Số traces hợp lệ | 0 | **25** | Trace tạo từ project cá nhân `day13-k4-l3b-2A202602859`; có root `day13-agent-request` + span `lab-agent-run`/`retrieval`/`generation` |
 | Số PII leak | 3 (email trong `message_preview`) | **0** | Scrubber chạy trước khi ghi file |
 | Latency P95 / TTFT P95 | 151 ms / 50 ms | 151 ms / 50 ms (bình thường) | Ở scenario `rag_slow` P95 vọt lên 2653 ms, TTFT không đổi |
@@ -69,7 +72,7 @@
 - **Ảnh evidence prompt:** `evidence/09-prompt-versions.png` (danh sách version `day13-chat`), `evidence/10-prompt-rollback.png` (trạng thái label sau rollback: `production`→v1, `candidate`→v2, `baseline`→v1).
 - **Cách promote và rollback `production`:** `app/prompt_management.py` resolve prompt theo `LANGFUSE_PROMPT_LABEL` (mặc định `production`). Promote = gán label `production` cho version candidate trong Langfuse; rollback = gán lại `production` cho version baseline. Khi Langfuse không khả dụng, app dùng prompt local fallback nên request không gãy.
 
-> **Trạng thái:** code tracing và prompt resolution đã hoàn thiện, pass 22 test, và **25 trace** đã được tạo trong project Langfuse cá nhân `day13-k4-l3b-2A202602859`. Evidence ảnh 06–10 và 14 đã có trong `submission/evidence/`.
+> **Trạng thái:** code tracing và prompt resolution đã hoàn thiện, pass 30 test (gồm 8 test bonus cho audit/scanner), và **25 trace** đã được tạo trong project Langfuse cá nhân `day13-k4-l3b-2A202602859`. Evidence ảnh 06–10 và 14 đã có trong `submission/evidence/`.
 
 ## 6. Dashboard, SLO và alerts
 
@@ -93,17 +96,38 @@
 - **Fix action:** tắt incident bằng `python scripts/inject_incident.py --disable`; `/health` trở lại `incidents.rag_slow=false` và latency về mức baseline (P95 ~153 ms).
 - **Preventive measure:** alert `HighLatencyP95` (5m) và `RetrievalSuccessDrop` (5m) bắt sớm; runbook `docs/alerts.md#alert-1` hướng dẫn dashboard → log theo `correlation_id` → trace để khoanh vùng span retrieval trước khi tắt scenario/rollback. Bổ sung SLO `latency_threshold_ms = 2000` (chặt hơn SLO nội bộ 3000 ms) để phát hiện sớm suy giảm ở bước retrieval.
 
-## 8. Giải thích và tự đánh giá
+## 8. Bonus — tối ưu chi phí, audit log và automation
+
+### 8.1. Cost optimization before/after trên cùng workload (+5)
+
+- **Cách đo:** `scripts/compare_cost.py` chạy **cùng** 10 query trong `data/sample_queries.jsonl` với **cùng seed** (`SEED=42`) nên output token giống hệt; chỉ khác cấu hình prompt. `before` dùng prompt đầy đủ (lặp `feature` + toàn bộ docs + câu hỏi đầy đủ); `after` bật `PROMPT_COMPACT=1` (`app/prompt_management.py`) để bỏ dòng feature (đã có trong metadata), chỉ giữ 1 doc và cắt câu hỏi còn 120 ký tự.
+- **Kết quả (`evidence/15-cost-optimization.txt`):** token đầu vào **338 → 291** (−13.9%), tổng cost **$0.019200 → $0.019000** (−1.0%), trong khi **quality trung bình giữ nguyên 0.88** và output token không đổi (1210). Tức tối ưu chỉ cắt phần input dư thừa, không đánh đổi chất lượng.
+- **Ý nghĩa vận hành:** chi phí LLM tỉ lệ với token; rút gọn prompt là đòn tối ưu rẻ nhất, đo được bằng `cost_usd`/`tokens_in` đã có sẵn trên mỗi `response_sent` và panel cost/tokens của dashboard.
+
+### 8.2. Audit log riêng (+5)
+
+- **Hiện thực:** `app/audit.py` ghi audit tách biệt với log nghiệp vụ vào `data/audit.jsonl` (`AUDIT_LOG_PATH`). Mỗi record có `schema_version`, `audit_id`, `ts`, `action`, `actor`, `target`, `outcome`, `correlation_id`, `retention_days`, `details`.
+- **Tự động ghi từ control-plane:** `POST /incidents/{name}/enable|disable` gọi `write_audit("incident.enable|disable", ...)` (`app/main.py`). `details` được scrub PII **đệ quy** trước khi ghi nên audit không chứa dữ liệu nhạy cảm.
+- **Retention:** `AUDIT_RETENTION_DAYS` (mặc định 90); dọn bản ghi hết hạn bằng `python -m app.audit --prune`.
+- **Schema, retention và truy vấn minh họa đầy đủ:** `docs/AUDIT.md`. Evidence runtime: `evidence/16-audit-log.txt` (gọi enable/disable qua API, in 2 record audit kèm truy vấn lọc theo action/target và kết quả prune).
+
+### 8.3. Automation: secret/PII scan + CI (+5)
+
+- **Scanner:** `scripts/scan_secrets.py` (chỉ thư viện chuẩn) quét secret thật (Langfuse `pk-lf-`/`sk-lf-`, AWS, Slack, private key, gán `SECRET=`), PII thô (email/SĐT VN/CCCD/thẻ) và file bị cấm commit (`.env`). Có allowlist cho fixture chứa PII giả của lab; fail (exit ≠ 0) khi phát hiện vi phạm.
+- **CI:** `.github/workflows/ci.yml` chạy khi push/PR: cài deps → `scan_secrets.py` → `pytest -q` → khởi động API + `load_test.py` → `validate_logs.py` → `validate_dashboard.py` → build dashboard và upload artifact. Đây là cổng chặn tự động chống commit secret/PII và hồi quy.
+- **Evidence:** `evidence/17-automation.txt` (kết quả scan sạch ở cả 2 chế độ + danh sách bước CI).
+
+## 9. Giải thích và tự đánh giá
 
 - **Một quyết định kỹ thuật quan trọng và lý do:** đặt `scrub_event` **trước** processor ghi file trong `app/logging_config.py`. Nếu scrub sau khi ghi thì PII đã lọt vào `data/logs.jsonl`/audit; scrub trước bảo đảm nguyên tắc "không có PII thô ở mọi đầu ra" ở tầng kiến trúc, không phụ thuộc việc nhớ gọi scrub tại từng chỗ log.
 - **Một lỗi/blocker đã gặp:** (1) `pip install -r requirements.txt` thất bại vì resolver backtrack qua nhiều phiên bản `langfuse` không tương thích trên Python 3.13 (`Could not find a version that satisfies wrapt<3,>=1.14`); (2) `AttributeError: 'RecordingLangfuseClient' object has no attribute 'start_as_current_observation'` khi test dùng fake client tối giản; (3) `.env` chưa có key Langfuse nên `tracing_enabled=false`.
-- **Cách tìm nguyên nhân và xử lý:** (1) cài riêng `langfuse==4.15.6` trước (kéo theo `wrapt`) rồi cài phần còn lại; (2) thêm helper `start_observation()` trong `app/tracing.py` dùng `getattr` + `_NullObservation` no-op để code nghiệp vụ không phụ thuộc client đầy đủ và tracing vẫn best-effort — sau đó 22/22 test pass; (3) tạo project Langfuse cá nhân `day13-k4-l3b-2A202602859`, dán `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY` vào `.env` (không commit) — từ đó tracing bật và tạo được 25 trace.
+- **Cách tìm nguyên nhân và xử lý:** (1) cài riêng `langfuse==4.15.6` trước (kéo theo `wrapt`) rồi cài phần còn lại; (2) thêm helper `start_observation()` trong `app/tracing.py` dùng `getattr` + `_NullObservation` no-op để code nghiệp vụ không phụ thuộc client đầy đủ và tracing vẫn best-effort — sau đó toàn bộ test pass; (3) tạo project Langfuse cá nhân `day13-k4-l3b-2A202602859`, dán `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY` vào `.env` (không commit) — từ đó tracing bật và tạo được 25 trace.
 - **Cách hiểu luồng Metrics → Logs → Traces:** metrics trả lời "có gì bất thường và khi nào" (nhanh, rẻ, tổng hợp); khi metric chỉ ra khoảng thời gian, log cho biết "request nào" qua `correlation_id`; trace cùng `correlation_id` cho biết "bước nào" gây ra vấn đề. Ba tầng giảm dần độ rộng và tăng dần chi tiết, dẫn tới root cause.
 - **Vai trò của prompt version, token/cost, SLO hoặc rollback trong vận hành LLM:** prompt là một phần "code" của LLM nên cần version + label để promote/rollback có kiểm soát; token/cost là chỉ số chi phí gắn trực tiếp với chất lượng output (prompt dài/candidate sinh nhiều token ⇒ tốn hơn); SLO/error budget biến "chất lượng dịch vụ" thành ngưỡng định lượng để quyết định khi nào dừng release; rollback là hành động giảm thiểu nhanh nhất khi metric xấu sau khi đổi prompt.
 - **Điều quan trọng nhất đã học:** quan sát (observability) là năng lực thiết kế từ đầu — correlation ID, scrub-before-write, span tree và ngưỡng SLO phải được cài trong code, không thể "gắn thêm" sau khi sự cố xảy ra.
 - **Hạn chế hoặc phần chưa hoàn thành, nếu có:** (1) challenge CP3 chính thức đã chạy xong (`day13-k4-l3b-monitoring-llmops-v1`, incident `rag_slow`) và được chứng minh đầy đủ bằng chuỗi metric → log → trace → root cause trong mục §7; (2) dashboard runtime dựng bằng script chuẩn-thư-viện từ `data/logs.jsonl` thay vì Grafana vì lab không cấp hạ tầng dashboard ngoài.
 
-## 9. Checklist trước khi nộp
+## 10. Checklist trước khi nộp
 
 - [x] Kết quả và evidence thuộc commit SHA cuối.
 - [x] Tất cả ảnh/output mở được bằng đường dẫn tương đối.
@@ -111,4 +135,5 @@
 - [x] Trace/prompt evidence thuộc project Langfuse cá nhân và ảnh không lộ key/secret.
 - [x] Repository chạy lại được theo README.
 - [x] Không có secret, API key, PII thô hoặc evidence của người khác/lớp khác.
+- [x] Bonus: cost before/after (`15`), audit log (`16` + `docs/AUDIT.md`), automation scan/CI (`17` + `.github/workflows/ci.yml`).
 - [x] URL repo và commit SHA cuối đã sẵn sàng để nộp trên LMS/Codelabs: `https://github.com/meth04/K4-L3-DAY13-NguyenVanThan-02859-Monitoring-LLMOps` @ `c48910f`.
