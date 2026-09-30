@@ -1,0 +1,14 @@
+=== 12: Incident metric — practice scenario rag_slow ===
+
+Bật scenario:  python scripts/inject_incident.py --scenario rag_slow
+Chạy tải:      python scripts/load_test.py --concurrency 3
+
+--- /health (scenario đang bật) ---
+{"ok":true,"tracing_enabled":false,"incidents":{"rag_slow":true,"tool_fail":false,"cost_spike":false}}
+--- /metrics ---
+{"traffic":41,"latency_p50":151.0,"latency_p95":2653.0,"latency_p99":2689.0,"ttft_p95":50.0,"avg_cost_usd":0.0022,"total_cost_usd":0.0904,"tokens_in_total":1398,"tokens_out_total":5746,"error_breakdown":{},"quality_avg":0.878}
+
+So sánh: TRƯỚC incident latency ~470ms; TRONG incident latency ~8000ms (đo từ load_test).
+Metric bất thường: latency_p95 tăng vọt 151ms -> 2653ms (và đỉnh 8000ms), TTFT gần như không đổi => nghẽn ở bước retrieval chứ không phải generation.
+
+Ngày chạy: 2026-09-30T02:28:34Z

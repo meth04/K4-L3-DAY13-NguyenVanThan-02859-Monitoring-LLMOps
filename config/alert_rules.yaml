@@ -1,25 +1,31 @@
+# Ba alert symptom-based cho Day 13 Monitoring & LLMOps.
+# Nguyên tắc: alert mô tả TRIỆU CHỨNG người dùng/SLO cảm nhận được, không bám
+# vào tên hàm hay implementation nội bộ. Mỗi alert đều có duration để tránh
+# báo động giả khi chỉ là một spike ngắn.
 alerts:
-  - name: TODO_alert_1
-    severity: TODO
-    condition: TODO
-    duration: TODO
+  - name: HighLatencyP95
+    severity: warning
+    condition: 'p95(latency_ms) > 3000ms trên event response_sent'
+    duration: 5m
     type: symptom-based
     channel: slack
-    owner: TODO
+    owner: student-2A202602859
     runbook: docs/alerts.md#alert-1
-  - name: TODO_alert_2
-    severity: TODO
-    condition: TODO
-    duration: TODO
+
+  - name: HighErrorRate
+    severity: critical
+    condition: 'error_rate_pct > 2% trên event request_failed / request_received'
+    duration: 3m
     type: symptom-based
     channel: slack
-    owner: TODO
+    owner: student-2A202602859
     runbook: docs/alerts.md#alert-2
-  - name: TODO_alert_3
-    severity: TODO
-    condition: TODO
-    duration: TODO
+
+  - name: RetrievalSuccessDrop
+    severity: warning
+    condition: 'tool_success_rate_pct < 90% (retrieval success) trên event response_sent'
+    duration: 5m
     type: symptom-based
     channel: slack
-    owner: TODO
+    owner: student-2A202602859
     runbook: docs/alerts.md#alert-3

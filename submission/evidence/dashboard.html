@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 13 Dashboard — 6 panel</title>
+<style>
+  :root {
+    --bg: #0f131a; --card: #171d27; --line: #2a3341; --fg: #e7edf5;
+    --muted: #97a3b4; --ok: #4dd4ac; --bad: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--fg);
+         font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .meta { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+  .meta code { color: var(--fg); }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .panel header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .panel h2 { font-size: 15px; margin: 0; }
+  .qid { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .question { color: var(--muted); font-size: 12px; margin: 4px 0 12px; }
+  .tile { display: inline-flex; flex-direction: column; gap: 2px; margin: 0 14px 12px 0; }
+  .tile-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .tile-value { font-size: 19px; font-weight: 600; }
+  .tile-target { font-size: 11px; color: var(--muted); }
+  .tile.ok .tile-value { color: var(--ok); }
+  .tile.bad .tile-value { color: var(--bad); }
+  .chart { width: 100%; height: auto; display: block; }
+  .val { fill: var(--fg); font-size: 11px; }
+  .ax { fill: var(--muted); font-size: 11px; }
+  .unit { fill: var(--muted); font-size: 11px; }
+  .empty { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+  <h1>K4-L3B Day 13 — Monitoring &amp; LLMOps dashboard</h1>
+  <p class="meta">
+    Nguồn dữ liệu: <code>data/logs.jsonl</code> ·
+    Time range: <code>60 phút</code> (2026-09-30 01:27 → 2026-09-30 02:27 UTC) ·
+    Refresh: <code>30s</code> ·
+    Tổng bản ghi: <code>84</code>
+  </p>
+  <div class="grid">
+    <section class="panel" id="latency"><header><h2>Latency percentiles and TTFT</h2><span class="qid">panel: latency</span></header><p class="question">Request có chậm không? P50/P95/P99 và TTFT đang ở mức nào?</p><div class="tile ok"><span class="tile-label">P50</span><span class="tile-value">151 ms</span><span class="tile-target">ngưỡng: —</span></div><div class="tile ok"><span class="tile-label">P95</span><span class="tile-value">2653 ms</span><span class="tile-target">ngưỡng: ≤ 3000 ms</span></div><div class="tile ok"><span class="tile-label">P99</span><span class="tile-value">2689 ms</span><span class="tile-target">ngưỡng: —</span></div><div class="tile ok"><span class="tile-label">TTFT P95</span><span class="tile-value">50 ms</span><span class="tile-target">ngưỡng: —</span></div><svg viewBox="0 0 320 150" class="chart" role="img"><line x1="0" y1="126" x2="320" y2="126" stroke="#3a4250"/><rect x="30" y="119.5" width="30" height="6.5" rx="3" fill="#5b9dff"/><text x="45" y="115.5" class="val" text-anchor="middle">151</text><text x="45" y="142" class="ax" text-anchor="middle">P50</text><rect x="76" y="11.6" width="30" height="114.4" rx="3" fill="#5b9dff"/><text x="91" y="7.6" class="val" text-anchor="middle">2653</text><text x="91" y="142" class="ax" text-anchor="middle">P95</text><rect x="122" y="10.0" width="30" height="116.0" rx="3" fill="#5b9dff"/><text x="137" y="6.0" class="val" text-anchor="middle">2689</text><text x="137" y="142" class="ax" text-anchor="middle">P99</text><rect x="168" y="123.8" width="30" height="2.2" rx="3" fill="#5b9dff"/><text x="183" y="119.8" class="val" text-anchor="middle">50</text><text x="183" y="142" class="ax" text-anchor="middle">TTFT P95</text><text x="0" y="12" class="unit">ms</text></svg></section><section class="panel" id="traffic"><header><h2>Request traffic</h2><span class="qid">panel: traffic</span></header><p class="question">Hệ thống đang nhận bao nhiêu request theo thời gian?</p><div class="tile ok"><span class="tile-label">Tổng request</span><span class="tile-value">41</span><span class="tile-target">ngưỡng: —</span></div><div class="tile bad"><span class="tile-label">Rate trung bình</span><span class="tile-value">0.68 req/phút</span><span class="tile-target">ngưỡng: ≥ 1 req/phút</span></div><svg viewBox="0 0 320 150" class="chart" role="img"><line x1="0" y1="126" x2="320" y2="126" stroke="#3a4250"/><rect x="30" y="68.0" width="30" height="58.0" rx="3" fill="#39c2a5"/><text x="45" y="64.0" class="val" text-anchor="middle">10</text><text x="45" y="142" class="ax" text-anchor="middle">02:23</text><rect x="76" y="62.2" width="30" height="63.8" rx="3" fill="#39c2a5"/><text x="91" y="58.2" class="val" text-anchor="middle">11</text><text x="91" y="142" class="ax" text-anchor="middle">02:24</text><rect x="122" y="10.0" width="30" height="116.0" rx="3" fill="#39c2a5"/><text x="137" y="6.0" class="val" text-anchor="middle">20</text><text x="137" y="142" class="ax" text-anchor="middle">02:27</text><text x="0" y="12" class="unit">requests / phút</text></svg></section><section class="panel" id="errors"><header><h2>Error rate and retrieval success</h2><span class="qid">panel: errors</span></header><p class="question">Error rate có tăng không, retrieval có đang fail không?</p><div class="tile ok"><span class="tile-label">Error rate</span><span class="tile-value">0.00 %</span><span class="tile-target">ngưỡng: ≤ 2 %</span></div><div class="tile ok"><span class="tile-label">Retrieval success</span><span class="tile-value">100.0 %</span><span class="tile-target">ngưỡng: ≥ 90 %</span></div><svg viewBox="0 0 320 150" class="chart" role="img"><line x1="0" y1="126" x2="320" y2="126" stroke="#3a4250"/><rect x="30" y="124.0" width="30" height="2.0" rx="3" fill="#ff6b6b"/><text x="45" y="120.0" class="val" text-anchor="middle">0</text><text x="45" y="142" class="ax" text-anchor="middle">(không có lỗi)</text><text x="0" y="12" class="unit">số lỗi theo error_type</text></svg></section><section class="panel" id="cost"><header><h2>Cost over time</h2><span class="qid">panel: cost</span></header><p class="question">Chi phí có tăng bất thường không?</p><div class="tile ok"><span class="tile-label">Tổng cost</span><span class="tile-value">$0.0904</span><span class="tile-target">ngưỡng: ≤ $2.50</span></div><div class="tile ok"><span class="tile-label">Cost / request</span><span class="tile-value">$0.002204</span><span class="tile-target">ngưỡng: —</span></div><svg viewBox="0 0 320 150" class="chart" role="img"><path d="M30.0,74.2 L160.0,67.4 L290.0,25.0" fill="none" stroke="#ffb454" stroke-width="2"/><circle cx="30.0" cy="74.2" r="3" fill="#ffb454"/><text x="30.0" y="66.2" class="val" text-anchor="middle">0.021399</text><circle cx="160.0" cy="67.4" r="3" fill="#ffb454"/><text x="160.0" y="59.4" class="val" text-anchor="middle">0.024597</text><circle cx="290.0" cy="25.0" r="3" fill="#ffb454"/><text x="290.0" y="17.0" class="val" text-anchor="middle">0.044388</text><text x="30.0" y="142" class="ax" text-anchor="middle">02:23</text><text x="160.0" y="142" class="ax" text-anchor="middle">02:24</text><text x="290.0" y="142" class="ax" text-anchor="middle">02:27</text><text x="0" y="12" class="unit">usd / phút</text></svg></section><section class="panel" id="tokens"><header><h2>Input and output tokens</h2><span class="qid">panel: tokens</span></header><p class="question">Input/output token có dài bất thường không?</p><div class="tile ok"><span class="tile-label">Tokens in</span><span class="tile-value">1,398</span><span class="tile-target">ngưỡng: —</span></div><div class="tile ok"><span class="tile-label">Tokens out</span><span class="tile-value">5,746</span><span class="tile-target">ngưỡng: —</span></div><div class="tile ok"><span class="tile-label">Tổng tokens</span><span class="tile-value">7,144</span><span class="tile-target">ngưỡng: ≤ 50,000</span></div><svg viewBox="0 0 320 150" class="chart" role="img"><line x1="0" y1="126" x2="320" y2="126" stroke="#3a4250"/><rect x="30" y="97.8" width="30" height="28.2" rx="3" fill="#b18cff"/><text x="45" y="93.8" class="val" text-anchor="middle">1398</text><text x="45" y="142" class="ax" text-anchor="middle">input</text><rect x="76" y="10.0" width="30" height="116.0" rx="3" fill="#b18cff"/><text x="91" y="6.0" class="val" text-anchor="middle">5746</text><text x="91" y="142" class="ax" text-anchor="middle">output</text><text x="0" y="12" class="unit">tokens</text></svg></section><section class="panel" id="quality"><header><h2>Quality proxy</h2><span class="qid">panel: quality</span></header><p class="question">Quality proxy có giảm dưới mức chấp nhận được không?</p><div class="tile ok"><span class="tile-label">Quality trung bình</span><span class="tile-value">0.88</span><span class="tile-target">ngưỡng: ≥ 0.75</span></div><div class="tile ok"><span class="tile-label">Số mẫu</span><span class="tile-value">41</span><span class="tile-target">ngưỡng: —</span></div><svg viewBox="0 0 320 150" class="chart" role="img"><line x1="0" y1="126" x2="320" y2="126" stroke="#3a4250"/><rect x="30" y="10.0" width="30" height="116.0" rx="3" fill="#4dd4ac"/><text x="45" y="6.0" class="val" text-anchor="middle">0.878049</text><text x="45" y="142" class="ax" text-anchor="middle">mean</text><text x="0" y="12" class="unit">score 0–1</text></svg></section>
+  </div>
+</body>
+</html>

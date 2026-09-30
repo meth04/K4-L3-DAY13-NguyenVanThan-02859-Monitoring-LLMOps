@@ -1,0 +1,22 @@
+=== 05: PII redaction — scrub trước khi ghi file ===
+
+TRUOC: My email is student@vinuni.edu.vn please reply
+SAU  : My email is [REDACTED_EMAIL] please reply
+
+TRUOC: Call me at 0987654321 or +84 912 345 678
+SAU  : Call me at [REDACTED_PHONE_VN] or [REDACTED_PHONE_VN]
+
+TRUOC: CCCD 012345678901 and CMND 012345678
+SAU  : CCCD [REDACTED_CCCD] and CMND [REDACTED_CMND_9]
+
+TRUOC: Card 4111 1111 1111 1111 expires soon
+SAU  : Card [REDACTED_CREDIT_CARD] expires soon
+
+TRUOC: Passport B1234567 issued in Hanoi
+SAU  : Passport [REDACTED_PASSPORT_VN] issued in Hanoi
+
+--- Kiểm tra trên log thật: tìm chuỗi PII thô ---
+Email thô trong logs.jsonl: 0
+Số [REDACTED_EMAIL] trong logs: 3
+
+Ngày chạy: 2026-09-30T02:26:34Z

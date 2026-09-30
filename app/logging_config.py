@@ -42,8 +42,9 @@ def configure_logging() -> None:
             merge_contextvars,
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso", utc=True, key="ts"),
-            # TODO: Register your PII scrubbing processor here
-            # scrub_event,
+            # PII scrubbing phải chạy TRƯỚC JsonlFileProcessor/JSONRenderer
+            # để dữ liệu nhạy cảm không bao giờ được serialize hoặc ghi xuống file.
+            scrub_event,
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             JsonlFileProcessor(),

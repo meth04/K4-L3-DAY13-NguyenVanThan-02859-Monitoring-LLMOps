@@ -1,0 +1,20 @@
+=== BASELINE (trước khi sửa TODO) ===
+$ python -m pytest -q
+22 passed in 3.10s
+
+$ python scripts/validate_logs.py
+Total log records analyzed: 21
+Records with missing required fields: 20
+Records with missing enrichment (context): 20
+Unique correlation IDs found: 0
+Potential PII leaks detected: 0
+Estimated Score: 30/100
+  - [FAILED] Missing required fields (ts, level, etc.)
+  - [FAILED] Correlation ID propagation (less than 2 unique IDs)
+  - [FAILED] Log enrichment (missing user_id_hash, etc.)
+  + [PASSED] PII scrubbing
+
+$ python scripts/validate_dashboard.py
+HỢP LỆ: 6/6 panel có trong dashboard contract.
+
+Load test baseline: correlation_id = MISSING trên mọi request.

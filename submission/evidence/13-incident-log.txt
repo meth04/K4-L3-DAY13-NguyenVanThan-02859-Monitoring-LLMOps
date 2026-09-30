@@ -1,0 +1,13 @@
+=== 13: Incident log — dòng log bất thường kèm correlation_id ===
+
+Các response_sent có latency cao nhất trong cửa sổ incident:
+
+{"event": "response_sent", "correlation_id": "req-b44b1d94", "latency_ms": 2689, "ttft_ms": 87, "tool_name": "retrieval", "tool_success": true, "model": "claude-sonnet-4-5", "feature": "qa", "session_id": "s07", "quality_score": 0.9, "ts": "2026-09-30T02:27:30.776470Z"}
+{"event": "response_sent", "correlation_id": "req-edacecdf", "latency_ms": 2666, "ttft_ms": 50, "tool_name": "retrieval", "tool_success": true, "model": "claude-sonnet-4-5", "feature": "qa", "session_id": "s01", "quality_score": 0.9, "ts": "2026-09-30T02:27:17.441658Z"}
+{"event": "response_sent", "correlation_id": "req-35501d40", "latency_ms": 2653, "ttft_ms": 50, "tool_name": "retrieval", "tool_success": true, "model": "claude-sonnet-4-5", "feature": "qa", "session_id": "s02", "quality_score": 0.8, "ts": "2026-09-30T02:27:14.770495Z"}
+{"event": "response_sent", "correlation_id": "req-db5dc3fe", "latency_ms": 2652, "ttft_ms": 50, "tool_name": "retrieval", "tool_success": true, "model": "claude-sonnet-4-5", "feature": "summary", "session_id": "s03", "quality_score": 0.8, "ts": "2026-09-30T02:27:12.113942Z"}
+{"event": "response_sent", "correlation_id": "req-bead0595", "latency_ms": 2652, "ttft_ms": 50, "tool_name": "retrieval", "tool_success": true, "model": "claude-sonnet-4-5", "feature": "qa", "session_id": "s04", "quality_score": 0.9, "ts": "2026-09-30T02:27:20.104796Z"}
+
+Nhận xét: latency_ms ~2650ms nhưng ttft_ms chỉ 50ms => thời gian bị tiêu tốn TRƯỚC khi LLM sinh token, tức ở span retrieval.
+
+Ngày chạy: 2026-09-30T02:28:34Z

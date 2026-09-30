@@ -48,12 +48,20 @@ async def metrics() -> dict:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: Request, body: ChatRequest) -> ChatResponse:
-    # TODO: Enrich logs with request context (user_id_hash, session_id, feature, model, env)
-    # bind_contextvars(...)
-    
+    # Enrich logs with request context (user_id_hash, session_id, feature, model, env)
+    # Bind một lần cho cả request; structlog contextvars sẽ tự gắn vào mọi
+    # event log phía sau (request_received, response_sent, request_failed).
+    bind_contextvars(
+        service="api",
+        env=os.getenv("APP_ENV", "dev"),
+        user_id_hash=hash_user_id(body.user_id),
+        session_id=body.session_id,
+        feature=body.feature,
+        model=agent.model,
+    )
+
     log.info(
         "request_received",
-        service="api",
         payload={"message_preview": summarize_text(body.message)},
     )
     try:

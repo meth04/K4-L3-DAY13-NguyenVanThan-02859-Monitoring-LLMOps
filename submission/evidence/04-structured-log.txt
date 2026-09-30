@@ -1,0 +1,11 @@
+=== 04: Structured log — correlation_id xuyên suốt request_received -> response_sent ===
+
+--- request_received (đã scrub message_preview) ---
+{"payload": {"message_preview": "What is your refund policy? My email is [REDACTED_EMAIL]"}, "event": "request_received", "feature": "qa", "env": "dev", "user_id_hash": "2055254ee30a", "correlation_id": "req-7ce2464e", "service": "api", "model": "claude-sonnet-4-5", "session_id": "s01", "level": "info", "ts": "2026-09-30T02:23:56.708997Z"}
+
+--- response_sent (cùng correlation_id, có latency/ttft/token/cost/quality) ---
+{"service": "api", "latency_ms": 151, "ttft_ms": 50, "tokens_in": 36, "tokens_out": 109, "cost_usd": 0.001743, "quality_score": 0.9, "tool_name": "retrieval", "tool_success": true, "payload": {"answer_preview": "Starter answer. You should improve this output logic and add better quality chec..."}, "event": "response_sent", "feature": "qa", "env": "dev", "user_id_hash": "2055254ee30a", "correlation_id": "req-7ce2464e", "model": "claude-sonnet-4-5", "session_id": "s01", "level": "info", "ts": "2026-09-30T02:23:56.867580Z"}
+
+Ghi chú: correlation_id + service + env + feature + session_id + user_id_hash + model xuất hiện trên MỌI bản ghi của cùng request.
+
+Ngày chạy: 2026-09-30T02:26:33Z
