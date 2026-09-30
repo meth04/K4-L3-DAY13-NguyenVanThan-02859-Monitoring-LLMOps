@@ -8,7 +8,7 @@
 - **MSSV:** 2A202602859
 - **Lớp:** K4-L3B
 - **Repository URL:** https://github.com/meth04/K4-L3-DAY13-NguyenVanThan-02859-Monitoring-LLMOps
-- **Commit SHA cuối:** `c48910f` (commit nội dung đầy đủ — gồm code, evidence 01–14 và báo cáo này; xem `git log -1 --format=%H`)
+- **Commit SHA cuối:** `28e9d65` (commit nội dung đầy đủ — gồm code, bonus, evidence 01–17 và báo cáo này; xem `git log -1 --format=%H`)
 - **Challenge ID:** `day13-k4-l3b-monitoring-llmops-v1` (cohort K4, incident `rag_slow`, seed `1312`, affected_feature `monitoring`, SLO `latency_threshold_ms = 2000`)
 - **Tên project Langfuse cá nhân:** `day13-k4-l3b-2A202602859`
 
@@ -136,4 +136,4 @@
 - [x] Repository chạy lại được theo README.
 - [x] Không có secret, API key, PII thô hoặc evidence của người khác/lớp khác.
 - [x] Bonus: cost before/after (`15`), audit log (`16` + `docs/AUDIT.md`), automation scan/CI (`17` + `.github/workflows/ci.yml`).
-- [x] URL repo và commit SHA cuối đã sẵn sàng để nộp trên LMS/Codelabs: `https://github.com/meth04/K4-L3-DAY13-NguyenVanThan-02859-Monitoring-LLMOps` @ `c48910f`.
+- [x] URL repo và commit SHA cuối đã sẵn sàng để nộp trên LMS/Codelabs: `https://github.com/meth04/K4-L3-DAY13-NguyenVanThan-02859-Monitoring-LLMOps` @ `28e9d65`.
